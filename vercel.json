@@ -1,6 +1,5 @@
 {
   "buildCommand": "cd petrating && npm install && npm run build",
   "outputDirectory": "petrating/.next",
-  "framework": "nextjs",
-  "rootDirectory": "petrating"
+  "framework": "nextjs"
 }
