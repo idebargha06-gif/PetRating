@@ -513,8 +513,8 @@ export default function HomePage() {
           <div className="relative w-full max-w-5xl overflow-hidden rounded-[38px] border border-red-900/20 bg-[#f7efdf] p-6 text-stone-900 shadow-[0_30px_120px_rgba(0,0,0,0.45)] md:p-8">
             <div className="paper-texture" />
             <div className="classified-stamp">CLASSIFIED</div>
-            <div className="relative z-10">
-              <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[0.8fr_1.2fr]">
+            <div className="relative z-10 max-h-[85vh] overflow-y-auto pr-2">
+              <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_1fr] xl:grid-cols-[0.8fr_1.2fr]">
                 <div className="space-y-5">
                   <div className="inline-flex rounded-full bg-stone-950 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-amber-50">Sound Off</div>
                   <div className="rounded-[28px] border border-stone-200 bg-white/85 p-5 shadow-[0_18px_40px_rgba(66,31,0,0.08)]">
@@ -528,7 +528,7 @@ export default function HomePage() {
                 </div>
                 <div className="relative rounded-[30px] border border-stone-200 bg-white/88 p-5 shadow-[0_18px_40px_rgba(66,31,0,0.08)]">
                   {confettiVisible ? <div className="pointer-events-none absolute inset-0 overflow-hidden">{confettiItems.map((item) => <span key={item.id} className="confetti" style={{ left: `${item.left}%`, animationDelay: `${item.delay}s`, animationDuration: `${item.duration}s` }}>{item.badge}</span>)}</div> : null}
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                     {[
                       ['Chaos Energy', revealed.chaosEnergy ? `${chaosDisplay}%` : '--', 'text-amber-600'],
                       ['Betrayal Capacity', revealed.betrayalCapacity ? results?.betrayalCapacity : '--', 'text-red-700'],
