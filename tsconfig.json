@@ -17,18 +17,8 @@
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./petrating/*"]
-    }
+    ]
   },
-  "include": [
-    "petrating/next-env.d.ts",
-    "petrating/**/*.ts",
-    "petrating/**/*.tsx",
-    "petrating/.next/types/**/*.ts",
-    "petrating/.next/dev/types/**/*.ts",
-    "petrating/**/*.mts"
-  ],
-  "exclude": ["node_modules", "petrating/node_modules"]
+  "include": [],
+  "exclude": ["node_modules", "petrating"]
 }

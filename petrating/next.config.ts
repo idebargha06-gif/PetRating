@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  staticPageGenerationTimeout: 30,
+};
 
 export default nextConfig;
