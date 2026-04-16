@@ -19,16 +19,16 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./petrating/*"]
     }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "petrating/next-env.d.ts",
+    "petrating/**/*.ts",
+    "petrating/**/*.tsx",
+    "petrating/.next/types/**/*.ts",
+    "petrating/.next/dev/types/**/*.ts",
+    "petrating/**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "petrating/node_modules"]
 }
