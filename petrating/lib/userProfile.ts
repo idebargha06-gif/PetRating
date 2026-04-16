@@ -1,6 +1,11 @@
 import { supabase } from './supabase';
 import type { UserProfile } from '@/types/user';
 
+function toDateOnlyString(value: Date | string | null | undefined): string | null {
+  if (!value) return null;
+  return new Date(value).toISOString().split('T')[0];
+}
+
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   try {
     const { data, error } = await supabase
@@ -166,7 +171,7 @@ export async function updateStreak(userId: string): Promise<UserProfile | null> 
   if (!profile) return null;
 
   const today = new Date().toISOString().split('T')[0];
-  const lastRatingDate = profile.last_rating_date ? new Date(profile.last_rating_date).toISOString().split('T')[0] : null;
+  const lastRatingDate = toDateOnlyString(profile.last_rating_date);
 
   let newStreak = 0;
   let newLongestStreak = profile.longest_streak;
@@ -178,7 +183,7 @@ export async function updateStreak(userId: string): Promise<UserProfile | null> 
     // Already rated today, streak stays the same, increment daily count
     newStreak = profile.current_streak;
     newDailyCount = (profile.daily_ratings_count || 0) + 1;
-    newDailyDate = profile.daily_ratings_date || today;
+    newDailyDate = toDateOnlyString(profile.daily_ratings_date) ?? today;
   } else {
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     
@@ -233,7 +238,7 @@ export function canRateToday(profile: UserProfile | null): boolean {
   if (!profile) return false;
   
   const today = new Date().toISOString().split('T')[0];
-  const dailyDate = profile.daily_ratings_date ? new Date(profile.daily_ratings_date).toISOString().split('T')[0] : null;
+  const dailyDate = toDateOnlyString(profile.daily_ratings_date);
   
   // If it's a new day, allow rating
   if (dailyDate !== today) {
@@ -249,7 +254,7 @@ export function getDailyRatingsRemaining(profile: UserProfile | null): number {
   if (!profile) return 3;
   
   const today = new Date().toISOString().split('T')[0];
-  const dailyDate = profile.daily_ratings_date ? new Date(profile.daily_ratings_date).toISOString().split('T')[0] : null;
+  const dailyDate = toDateOnlyString(profile.daily_ratings_date);
   
   // If it's a new day, all 3 ratings available
   if (dailyDate !== today) {

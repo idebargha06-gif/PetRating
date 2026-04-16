@@ -1,11 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { getCommentsByPetId, addComment, getReactionsByPetId, addReaction, removeReaction, getReactionCounts, type Comment, type Reaction } from '@/lib/comments';
 import { supabase } from '@/lib/supabase';
+import { Providers } from '@/app/providers';
 
 type Pet = {
   id: string;
@@ -24,7 +24,7 @@ type Pet = {
   created_at: string;
 };
 
-export default function FeedPage() {
+function FeedPageContent() {
   const { data: session, status } = useSession();
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,11 +33,7 @@ export default function FeedPage() {
   const [newComment, setNewComment] = useState<Record<string, string>>({});
   const [reactionCounts, setReactionCounts] = useState<Record<string, Record<string, number>>>({});
 
-  useEffect(() => {
-    loadFeed();
-  }, []);
-
-  const loadFeed = async () => {
+  async function loadFeed() {
     setLoading(true);
     const { data, error } = await supabase
       .from('pets')
@@ -74,7 +70,17 @@ export default function FeedPage() {
       setReactionCounts(countsData);
     }
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadFeed();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   const handleAddComment = async (petId: string) => {
     if (!newComment[petId] || !session?.user?.email) return;
@@ -139,7 +145,8 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 flex">
+    <Providers>
+      <div className="min-h-screen bg-stone-50 flex">
       {/* Left Sidebar */}
       <aside className="w-64 bg-white border-r border-stone-200 p-6 hidden lg:block">
         <Link href="/" className="block mb-8">
@@ -303,6 +310,15 @@ export default function FeedPage() {
           <p className="text-sm text-stone-600">More features coming soon...</p>
         </div>
       </aside>
-    </div>
+      </div>
+    </Providers>
+  );
+}
+
+export default function FeedPage() {
+  return (
+    <Providers>
+      <FeedPageContent />
+    </Providers>
   );
 }

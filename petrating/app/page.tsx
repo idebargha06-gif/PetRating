@@ -4,7 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import type { UserProfile, JudgeTitle } from '@/types/user';
+import { Providers } from './providers';
+import type { UserProfile } from '@/types/user';
 import { getJudgeTitle } from '@/types/user';
 import { ensureUserProfile, addXP, addCoins, updateStreak, canRateToday, getDailyRatingsRemaining, checkAndAwardAchievements, buyExtraRating, getUserProfile } from '@/lib/userProfile';
 import { savePetToPortfolio } from '@/lib/pets';
@@ -132,7 +133,7 @@ async function loadImage(src: string) {
   });
 }
 
-export default function HomePage() {
+function HomePageContent() {
   const { data: session, status } = useSession();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -148,7 +149,7 @@ export default function HomePage() {
   const [shareFeedback, setShareFeedback] = useState('');
   const [downloadFeedback, setDownloadFeedback] = useState('');
   const [confettiVisible, setConfettiVisible] = useState(false);
-  const [tournamentCountdown, setTournamentCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [tournamentCountdown, setTournamentCountdown] = useState(getTimeToNextTournament());
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [purchaseFeedback, setPurchaseFeedback] = useState('');
   const [saveFeedback, setSaveFeedback] = useState('');
@@ -169,14 +170,6 @@ export default function HomePage() {
       ensureUserProfile(session.user.email).then(setUserProfile);
     }
   }, [status, session]);
-
-  useEffect(() => {
-    setTournamentCountdown(getTimeToNextTournament());
-    const interval = setInterval(() => {
-      setTournamentCountdown(getTimeToNextTournament());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (!overlayOpen) {
@@ -423,7 +416,7 @@ export default function HomePage() {
           text: shareText,
         });
         shared = true;
-      } catch (err) {
+      } catch {
         setShareFeedback('Share cancelled or failed.');
       }
     } else {
@@ -522,7 +515,7 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-6 text-stone-900">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="blob blob-one" />
         <div className="blob blob-two" />
         <div className="blob blob-three" />
@@ -751,7 +744,7 @@ export default function HomePage() {
         </div>
       ) : null}
 
-      <style jsx>{`
+        <style jsx>{`
         .blob { position: absolute; border-radius: 9999px; filter: blur(38px); opacity: 0.45; animation: drift 18s ease-in-out infinite alternate; }
         .blob-one { top: 8%; left: 4%; height: 280px; width: 280px; background: rgba(255, 171, 145, 0.8); }
         .blob-two { top: 18%; right: 12%; height: 240px; width: 240px; background: rgba(221, 191, 255, 0.7); animation-duration: 22s; }
@@ -788,7 +781,15 @@ export default function HomePage() {
         @keyframes stamp-in { 0% { opacity: 0; transform: translateY(-26px) rotate(-220deg) scale(0.4); } 70% { opacity: 1; transform: translateY(8px) rotate(-10deg) scale(1.08); } 100% { opacity: 1; transform: translateY(0) rotate(-14deg) scale(1); } }
         @keyframes confetti { from { opacity: 1; transform: translateY(0) rotate(0deg); } to { opacity: 0; transform: translateY(-130px) rotate(180deg); } }
         @media (max-width: 767px) { .classified-stamp { right: 1rem; top: 2rem; font-size: 1.6rem; padding: 0.7rem 0.9rem; } }
-      `}</style>
+        `}</style>
     </main>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Providers>
+      <HomePageContent />
+    </Providers>
   );
 }

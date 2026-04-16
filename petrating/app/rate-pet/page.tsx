@@ -4,8 +4,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PetUploadForm } from '@/components/pet/PetUploadForm';
 import { useSession } from 'next-auth/react';
+import { Providers } from '@/app/providers';
 
-export default function RatePetPage() {
+function RatePetPageContent() {
   const { status } = useSession();
   const router = useRouter();
 
@@ -50,5 +51,13 @@ export default function RatePetPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RatePetPage() {
+  return (
+    <Providers>
+      <RatePetPageContent />
+    </Providers>
   );
 }

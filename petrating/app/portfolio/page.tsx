@@ -5,28 +5,37 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { getUserPortfolio, removePetFromPortfolio, getPortfolioRarityScore, type Pet } from '@/lib/pets';
+import { Providers } from '@/app/providers';
 
-export default function PortfolioPage() {
+function PortfolioPageContent() {
   const { data: session, status } = useSession();
   const [pets, setPets] = useState<Pet[]>([]);
   const [rarityScore, setRarityScore] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error] = useState('');
 
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.email) {
-      loadPortfolio(session.user.email);
-    }
-  }, [status, session]);
-
-  const loadPortfolio = async (userId: string) => {
+  async function loadPortfolio(userId: string) {
     setLoading(true);
     const portfolio = await getUserPortfolio(userId);
     setPets(portfolio);
     const score = await getPortfolioRarityScore(portfolio);
     setRarityScore(score);
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    const userEmail = session?.user?.email;
+
+    if (status === 'authenticated' && userEmail) {
+      const timer = window.setTimeout(() => {
+        void loadPortfolio(userEmail);
+      }, 0);
+
+      return () => {
+        window.clearTimeout(timer);
+      };
+    }
+  }, [status, session]);
 
   const handleRemove = async (petId: string) => {
     if (confirm('Remove this pet from your portfolio?')) {
@@ -58,8 +67,9 @@ export default function PortfolioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7efdf]">
-      <nav className="sticky top-0 z-50 bg-[#f7efdf]/95 backdrop-blur-sm border-b border-stone-200">
+    <Providers>
+      <div className="min-h-screen bg-[#f7efdf]">
+        <nav className="sticky top-0 z-50 bg-[#f7efdf]/95 backdrop-blur-sm border-b border-stone-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-stone-900">
             PetRating
@@ -71,9 +81,9 @@ export default function PortfolioPage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-4xl font-black text-stone-900 mb-2">Your Portfolio</h1>
-        <p className="text-stone-600 mb-8">Your collection of judged pets</p>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <h1 className="text-4xl font-black text-stone-900 mb-2">Your Portfolio</h1>
+          <p className="text-stone-600 mb-8">Your collection of judged pets</p>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
@@ -132,7 +142,16 @@ export default function PortfolioPage() {
             ))}
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </Providers>
+  );
+}
+
+export default function PortfolioPage() {
+  return (
+    <Providers>
+      <PortfolioPageContent />
+    </Providers>
   );
 }

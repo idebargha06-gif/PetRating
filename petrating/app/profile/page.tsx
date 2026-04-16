@@ -4,8 +4,9 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { Providers } from '@/app/providers';
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -91,5 +92,13 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Providers>
+      <ProfilePageContent />
+    </Providers>
   );
 }
