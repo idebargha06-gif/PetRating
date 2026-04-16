@@ -4,6 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { signIn, signOut, useSession } from 'next-auth/react';
+import type { UserProfile, JudgeTitle } from '@/types/user';
+import { getJudgeTitle } from '@/types/user';
+import { ensureUserProfile, addXP, addCoins, updateStreak, canRateToday, getDailyRatingsRemaining, checkAndAwardAchievements, buyExtraRating, getUserProfile } from '@/lib/userProfile';
+import { savePetToPortfolio } from '@/lib/pets';
 
 const marqueeVerdicts = [
   'Mochi the Shiba - Certified Menace',
@@ -144,7 +148,10 @@ export default function HomePage() {
   const [shareFeedback, setShareFeedback] = useState('');
   const [downloadFeedback, setDownloadFeedback] = useState('');
   const [confettiVisible, setConfettiVisible] = useState(false);
-  const [tournamentCountdown, setTournamentCountdown] = useState(getTimeToNextTournament());
+  const [tournamentCountdown, setTournamentCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [purchaseFeedback, setPurchaseFeedback] = useState('');
+  const [saveFeedback, setSaveFeedback] = useState('');
 
   const avatarInitial = (session?.user?.name?.[0] ?? 'N').toUpperCase();
   const confettiItems = useMemo(() => Array.from({ length: 18 }, (_, index) => ({ id: index, badge: ['*', '!', '+'][index % 3], left: 8 + index * 5, delay: index * 0.04, duration: 0.9 + (index % 4) * 0.15 })), []);
@@ -156,6 +163,20 @@ export default function HomePage() {
       }
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.email) {
+      ensureUserProfile(session.user.email).then(setUserProfile);
+    }
+  }, [status, session]);
+
+  useEffect(() => {
+    setTournamentCountdown(getTimeToNextTournament());
+    const interval = setInterval(() => {
+      setTournamentCountdown(getTimeToNextTournament());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!overlayOpen) {
@@ -248,11 +269,67 @@ export default function HomePage() {
     resetVerdictState();
   };
 
+  const handleBuyExtraRating = async () => {
+    if (status !== 'authenticated' || !session?.user?.email) return;
+    
+    const result = await buyExtraRating(session.user.email);
+    setPurchaseFeedback(result.message);
+    if (result.success) {
+      // Fetch fresh profile from database to ensure state is up to date
+      const freshProfile = await getUserProfile(session.user.email);
+      if (freshProfile) {
+        setUserProfile(freshProfile);
+      }
+      // Clear the upload feedback so user can try again
+      setUploadFeedback('');
+    }
+  };
+
+  const handleSaveToPortfolio = async () => {
+    if (status !== 'authenticated' || !session?.user?.email || !results || !selectedFile) return;
+    
+    const userEmail = session.user.email;
+    
+    // Convert file to base64 for persistent storage
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64String = e.target?.result as string;
+      
+      const savedPet = await savePetToPortfolio(userEmail, {
+        name: selectedFile.name,
+        photo_url: base64String,
+        chaos_energy: results.chaosEnergy,
+        betrayal_capacity: results.betrayalCapacity,
+        fluff_factor: results.fluffFactor,
+        zoomies_level: results.zoomiesLevel,
+        regret_index: results.regretIndex,
+        nap_proficiency: results.napProficiency,
+        verdict: results.verdict,
+      });
+
+      if (savedPet) {
+        setSaveFeedback('Pet saved to your portfolio! 🎉');
+      } else {
+        setSaveFeedback('Failed to save pet to portfolio.');
+      }
+    };
+    reader.readAsDataURL(selectedFile);
+  };
+
   const handleUpload = async () => {
     if (!selectedFile) {
       setUploadFeedback('Pick a pet photo first, menace.');
       return;
     }
+
+    // Check daily rating limit
+    if (status === 'authenticated' && !canRateToday(userProfile)) {
+      const remaining = getDailyRatingsRemaining(userProfile);
+      const userCoins = userProfile?.coins || 0;
+      setUploadFeedback(`Daily rating limit reached. ${userCoins >= 50 ? `Buy extra rating for 50 coins or ` : ''}Come back tomorrow for ${remaining} free ratings!`);
+      return;
+    }
+
     console.log('Pet upload file:', selectedFile);
     showCourtToast();
     await wait(650);
@@ -288,6 +365,39 @@ export default function HomePage() {
     window.setTimeout(() => setConfettiVisible(false), 1200);
     setAnalysisMessage('Judgment complete. No appeals accepted.');
     setUploadFeedback('Defendant convicted in the court of vibes.');
+
+    // Award XP, coins, and update streak
+    if (status === 'authenticated' && session?.user?.email) {
+      // Calculate XP multiplier based on streak
+      let xpMultiplier = 1;
+      const currentStreak = userProfile?.current_streak || 0;
+      if (currentStreak >= 30) {
+        xpMultiplier = 3;
+      } else if (currentStreak >= 7) {
+        xpMultiplier = 2;
+      }
+
+      await addXP(session.user.email, 10 * xpMultiplier);
+      await addCoins(session.user.email, 10);
+      const updatedProfile = await updateStreak(session.user.email);
+      if (updatedProfile) {
+        setUserProfile(updatedProfile);
+        
+        // Check and award achievements
+        const profileWithAchievements = await checkAndAwardAchievements(
+          session.user.email,
+          nextResults.chaosEnergy,
+          nextResults.betrayalCapacity,
+          nextResults.fluffFactor,
+          nextResults.zoomiesLevel,
+          nextResults.regretIndex,
+          nextResults.napProficiency
+        );
+        if (profileWithAchievements) {
+          setUserProfile(profileWithAchievements);
+        }
+      }
+    }
   };
 
   const handleShare = async () => {
@@ -302,15 +412,35 @@ export default function HomePage() {
       `Zoomies Level: ${results.zoomiesLevel}`,
       `Regret Index: ${results.regretIndex}`,
       `Nap Proficiency: ${results.napProficiency}`,
-      `Final Verdict: ${results.verdict}`,
+      `Verdict: ${results.verdict}`,
     ].join('\n');
 
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setShareFeedback('Share card copied. The group chat is doomed.');
-    } catch {
-      window.alert('Ready to share!');
-      setShareFeedback('Ready to share!');
+    let shared = false;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'PetRating Verdict',
+          text: shareText,
+        });
+        shared = true;
+      } catch (err) {
+        setShareFeedback('Share cancelled or failed.');
+      }
+    } else {
+      navigator.clipboard.writeText(shareText);
+      shared = true;
+    }
+
+    if (shared) {
+      setShareFeedback('Verdict shared successfully! +5 coins earned!');
+      // Award coins for sharing
+      if (status === 'authenticated' && session?.user?.email) {
+        await addCoins(session.user.email, 5);
+        const updatedProfile = await getUserProfile(session.user.email);
+        if (updatedProfile) {
+          setUserProfile(updatedProfile);
+        }
+      }
     }
   };
 
@@ -413,14 +543,67 @@ export default function HomePage() {
               <span className="text-2xl font-black tracking-tight">PetRating</span>
               <span className="gavel inline-flex text-xl transition-transform group-hover:scale-110">🔨</span>
             </Link>
-            <Link href="/hall-of-shame" className="text-sm font-semibold text-stone-700 transition hover:text-stone-950">Hall of Shame</Link>
+            <div className="flex items-center gap-4">
+              <Link href="/feed" className="text-sm font-bold text-stone-900 hover:text-red-700 transition-colors">Feed</Link>
+              <Link href="/portfolio" className="text-sm font-bold text-stone-900 hover:text-red-700 transition-colors">Portfolio</Link>
+              <Link href="/hall-of-shame" className="text-sm font-bold text-stone-900 hover:text-red-700 transition-colors">Hall of Shame</Link>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-amber-300 text-sm font-black text-white shadow-[0_8px_20px_rgba(244,114,182,0.35)]">{avatarInitial}</div>
-            <span className="rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-950">
-              {status === 'authenticated' ? `Signed in as ${session.user?.name ?? 'Mystery Beast'}` : 'No human identified yet'}
-            </span>
+            {status === 'authenticated' && userProfile ? (
+              <>
+                <div className="flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-100 to-rose-100 px-4 py-2">
+                  <div className="text-center">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-stone-600">Level {userProfile.level}</p>
+                    <p className="text-sm font-black text-stone-950">{getJudgeTitle(userProfile.level)}</p>
+                  </div>
+                </div>
+                <div className="rounded-full bg-stone-950 px-3 py-2 text-center">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">XP</p>
+                  <p className="text-sm font-black text-amber-50">{userProfile.xp}</p>
+                </div>
+                <div className="rounded-full bg-gradient-to-br from-amber-400 to-amber-500 px-3 py-2 text-center">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em text-amber-900">Coins</p>
+                  <p className="text-sm font-black text-amber-950">{userProfile.coins}</p>
+                </div>
+                <div className="rounded-full bg-gradient-to-br from-rose-400 to-red-500 px-3 py-2 text-center">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-white">Streak</p>
+                  <p className="text-sm font-black text-white">{userProfile.current_streak}🔥</p>
+                </div>
+                <div className="rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 px-3 py-2 text-center">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-white">Extra</p>
+                  <p className="text-sm font-black text-white">+{userProfile.extra_ratings_available || 0}</p>
+                </div>
+                {userProfile.badges.length > 0 && (
+                  <div className="flex items-center gap-1 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 px-3 py-2">
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-purple-900">Badges:</p>
+                    <div className="flex gap-1">
+                      {userProfile.badges.slice(0, 3).map((badge) => (
+                        <span key={badge} className="text-lg" title={badge}>
+                          {badge === 'Certified Judge' ? '⚖️' : 
+                           badge === 'Chaos Hunter' ? '🌪️' :
+                           badge === 'Betrayal Detective' ? '🕵️' :
+                           badge === 'Nap Expert' ? '😴' :
+                           badge === 'Fluff Lord' ? '☁️' :
+                           badge === 'Zoomies Master' ? '⚡' :
+                           badge === 'Regret-Free' ? '😌' :
+                           badge === 'Streak Master' ? '🔥' :
+                           badge === 'Streak Legend' ? '👑' :
+                           badge === 'Veteran Judge' ? '🎖️' : '🏅'}
+                        </span>
+                      ))}
+                      {userProfile.badges.length > 3 && <span className="text-xs font-black text-purple-900">+{userProfile.badges.length - 3}</span>}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <span className="rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-950">
+                {status === 'authenticated' ? `Signed in as ${session.user?.name ?? 'Mystery Beast'}` : 'No human identified yet'}
+              </span>
+            )}
             <button type="button" onClick={handleAuthAction} className="button-pill rounded-full border border-stone-900 bg-stone-950 px-5 py-2.5 text-sm font-black text-amber-50">
               {status === 'authenticated' ? 'Logout' : 'Sign In'}
             </button>
@@ -458,6 +641,12 @@ export default function HomePage() {
                   <button type="button" onClick={handleUpload} className="button-pill rounded-full bg-amber-300 px-5 py-3 text-base font-black text-stone-950">Upload Pet</button>
                 </div>
                 <p className="rounded-2xl bg-amber-100 px-4 py-3 text-sm font-semibold text-amber-950">{uploadFeedback || 'Pick a photo and launch the trial. No scrolling required.'}</p>
+                {status === 'authenticated' && !canRateToday(userProfile) && (userProfile?.coins || 0) >= 50 && (
+                  <button type="button" onClick={handleBuyExtraRating} className="button-pill rounded-full bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3 text-base font-black text-amber-950">
+                    Buy Extra Rating (50 coins)
+                  </button>
+                )}
+                {purchaseFeedback && <p className="rounded-2xl bg-purple-100 px-4 py-3 text-sm font-semibold text-purple-950">{purchaseFeedback}</p>}
                 {!results ? <div className="breathing-preview rounded-[28px] border-2 border-dashed border-stone-300 bg-stone-50 p-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)]"><p className="text-xs font-black uppercase tracking-[0.28em] text-stone-500">Awaiting Judgment</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{['Chaos Energy','Betrayal Capacity','Fluff Factor'].map((label, index) => <div key={label} className="rounded-2xl bg-white/90 px-4 py-5 shadow-[0_10px_24px_rgba(66,31,0,0.08)]"><p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">{label}</p><p className="mt-2 text-lg font-black text-stone-800">{['???','CLASSIFIED','PENDING'][index]}</p></div>)}</div></div> : null}
               </div>
             </div>
@@ -509,8 +698,8 @@ export default function HomePage() {
       {toastVisible ? <div className="fixed bottom-6 right-6 z-50 rounded-[22px] border border-white/10 bg-stone-950 px-5 py-4 text-sm text-amber-50 shadow-[0_24px_60px_rgba(0,0,0,0.35)]"><p className="font-serif text-lg font-bold">Defendant received.</p><p className="font-serif text-amber-100/80">Court convening shortly.</p></div> : null}
 
       {overlayOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,79,79,0.2),transparent_30%),linear-gradient(180deg,rgba(15,7,7,0.92)_0%,rgba(33,10,10,0.95)_100%)] px-4 py-6">
-          <div className="relative w-full max-w-5xl overflow-hidden rounded-[38px] border border-red-900/20 bg-[#f7efdf] p-6 text-stone-900 shadow-[0_30px_120px_rgba(0,0,0,0.45)] md:p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,79,79,0.2),transparent_30%),linear-gradient(180deg,rgba(15,7,7,0.92)_0%,rgba(33,10,10,0.95)_100%)] px-4 py-6" onClick={resetVerdictState}>
+          <div className="relative w-full max-w-5xl overflow-hidden rounded-[38px] border border-red-900/20 bg-[#f7efdf] p-6 text-stone-900 shadow-[0_30px_120px_rgba(0,0,0,0.45)] md:p-8" onClick={(e) => e.stopPropagation()}>
             <div className="paper-texture" />
             <div className="classified-stamp">CLASSIFIED</div>
             <div className="relative z-10 max-h-[85vh] overflow-y-auto pr-2">
@@ -545,11 +734,13 @@ export default function HomePage() {
                       <div className="verdict-rubber mt-4 inline-block rounded-md border-[3px] border-red-700 px-5 py-3 text-2xl font-black uppercase text-red-700">{results.verdict}</div>
                       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                         <button type="button" onClick={handleShare} className="button-pill rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(220,38,38,0.26)]">Share Card</button>
+                        <button type="button" onClick={handleSaveToPortfolio} className="button-pill rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(168,85,247,0.26)]">Save to Portfolio 📁</button>
                         <button type="button" onClick={() => { resetVerdictState(); openFilePicker(); }} className="button-pill rounded-full bg-amber-300 px-6 py-3 text-sm font-black text-stone-950">Expose This Criminal 📸</button>
                         <button type="button" onClick={resetVerdictState} className="button-pill rounded-full border border-stone-900 bg-transparent px-6 py-3 text-sm font-black text-stone-900">Judge Another</button>
                         <button type="button" onClick={handleDownload} className="button-pill rounded-full border border-stone-900 bg-white px-6 py-3 text-sm font-black text-stone-900">Download Card</button>
                       </div>
                       {shareFeedback ? <p className="mt-3 text-sm font-semibold text-red-700">{shareFeedback}</p> : null}
+                      {saveFeedback ? <p className="mt-3 text-sm font-semibold text-purple-700">{saveFeedback}</p> : null}
                       {downloadFeedback ? <p className="mt-2 text-sm font-semibold text-stone-700">{downloadFeedback}</p> : null}
                     </div>
                   ) : null}
@@ -581,7 +772,7 @@ export default function HomePage() {
         .stat-card.revealed { opacity: 1; transform: translateY(0); animation: reveal-up 0.45s ease forwards; box-shadow: 0 14px 28px rgba(66, 31, 0, 0.1); }
         .flicker-card.revealed { animation: reveal-up 0.45s ease forwards, flicker 0.55s ease; }
         .stat-label { font-size: 0.74rem; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; color: #8b5e3c; }
-        .stat-value { margin-top: 0.85rem; font-size: 2.35rem; line-height: 1.08; font-weight: 900; color: #221b1a; }
+        .stat-value { margin-top: 0.85rem; font-size: 1.6rem; line-height: 1.15; font-weight: 900; color: #221b1a; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
         .verdict-shell { transform: scale(0.8); animation: verdict-in 0.55s ease forwards; }
         .spin-stamp { position: absolute; right: 1.2rem; top: -1rem; padding: 0.7rem 1rem; border: 4px solid #991b1b; color: #991b1b; font-size: 0.9rem; font-weight: 900; letter-spacing: 0.22em; transform: rotate(-14deg); animation: stamp-in 0.85s cubic-bezier(0.2, 1.4, 0.4, 1) forwards; background: rgba(255, 249, 239, 0.9); }
         .verdict-rubber { transform: rotate(-4deg); box-shadow: inset 0 0 0 1px rgba(153, 27, 27, 0.08); }

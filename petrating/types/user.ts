@@ -1,0 +1,103 @@
+export type UserProfile = {
+  user_id: string;
+  xp: number;
+  level: number;
+  coins: number;
+  badges: string[];
+  current_streak: number;
+  longest_streak: number;
+  last_rating_date: Date | string | null;
+  daily_ratings_count: number;
+  daily_ratings_date: Date | string | null;
+  extra_ratings_available: number;
+  total_ratings: number;
+  created_at: Date | string;
+  updated_at: Date | string;
+};
+
+export type JudgeTitle = 
+  | 'Rookie Judge'
+  | 'Associate Judge'
+  | 'Circuit Judge'
+  | 'Superior Court Justice'
+  | 'Supreme Court Justice'
+  | 'Legendary Judge';
+
+export function getJudgeTitle(level: number): JudgeTitle {
+  if (level <= 5) return 'Rookie Judge';
+  if (level <= 10) return 'Associate Judge';
+  if (level <= 20) return 'Circuit Judge';
+  if (level <= 30) return 'Superior Court Justice';
+  if (level <= 50) return 'Supreme Court Justice';
+  return 'Legendary Judge';
+}
+
+export function getXPForLevel(level: number): number {
+  // XP required to reach each level (cumulative)
+  const xpRequirements: Record<number, number> = {
+    1: 0,
+    2: 100,
+    3: 250,
+    4: 450,
+    5: 700,
+    6: 1000,
+    7: 1350,
+    8: 1750,
+    9: 2200,
+    10: 2700,
+    11: 3250,
+    12: 3850,
+    13: 4500,
+    14: 5200,
+    15: 5950,
+    16: 6750,
+    17: 7600,
+    18: 8500,
+    19: 9450,
+    20: 10450,
+    21: 11500,
+    22: 12600,
+    23: 13750,
+    24: 14950,
+    25: 16200,
+    26: 17500,
+    27: 18850,
+    28: 20250,
+    29: 21700,
+    30: 23200,
+    31: 24750,
+    32: 26350,
+    33: 28000,
+    34: 29700,
+    35: 31450,
+    36: 33250,
+    37: 35100,
+    38: 37000,
+    39: 38950,
+    40: 40950,
+    41: 43000,
+    42: 45100,
+    43: 47250,
+    44: 49450,
+    45: 51700,
+    46: 54000,
+    47: 56350,
+    48: 58750,
+    49: 61200,
+    50: 63700,
+  };
+  
+  return xpRequirements[level] || level * 1300;
+}
+
+export function getLevelFromXP(xp: number): number {
+  let level = 1;
+  for (let l = 2; l <= 50; l++) {
+    if (xp >= getXPForLevel(l)) {
+      level = l;
+    } else {
+      break;
+    }
+  }
+  return level;
+}
