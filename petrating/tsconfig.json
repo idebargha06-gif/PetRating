@@ -30,10 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": [
-    "node_modules",
-    "../DAY*.ts",
-    "../PETRATING_PROJECT_PLAN.md",
-    "../*.md"
-  ]
+  "exclude": ["node_modules"]
 }
