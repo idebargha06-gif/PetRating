@@ -407,13 +407,13 @@ export default function Home() {
                 Resources
               </h4>
               <ul className={`space-y-3 ${isCuteMode ? "font-medium" : "font-bold"}`}>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
+                <li><a href="/pet-tips" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
                   {isCuteMode ? "Pet Tips" : "Our Chaos"}
                 </a></li>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
+                <li><a href="/care-guide" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
                   {isCuteMode ? "Care Guide" : "The Queens"}
                 </a></li>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
+                <li><a href="/blog" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
                   {isCuteMode ? "Blog" : "Press (we're famous)"}
                 </a></li>
               </ul>
