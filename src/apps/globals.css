@@ -1,0 +1,339 @@
+<<<<<<< HEAD
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+=======
+@import "tailwindcss";
+
+:root {
+  --background: #fff8ec;
+  --foreground: #221b1a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background:
+    radial-gradient(circle at top, rgba(255, 137, 92, 0.24), transparent 32%),
+    radial-gradient(circle at 80% 20%, rgba(255, 225, 111, 0.38), transparent 24%),
+    linear-gradient(180deg, #fffaf2 0%, #ffe4d2 100%);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+/* Button styles */
+.button-pill {
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.button-pill:hover {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 16px 30px rgba(66, 31, 0, 0.16);
+}
+
+/* Marquee styles */
+.marquee-shell {
+  white-space: nowrap;
+}
+
+.marquee-track {
+  display: inline-flex;
+  min-width: max-content;
+  animation: marquee 24s linear infinite;
+}
+
+.marquee-item {
+  margin-right: 2rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7c2d12;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Gavel animation */
+.gavel {
+  transform-origin: bottom center;
+}
+
+.group:hover .gavel {
+  animation: gavel-hover 0.65s ease;
+}
+
+@keyframes gavel-hover {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  40% {
+    transform: translateY(-4px) rotate(-18deg);
+  }
+  70% {
+    transform: translateY(2px) rotate(12deg);
+  }
+}
+
+/* Breathing animation */
+.breathing-preview {
+  animation: breathe 4.8s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 14px 28px rgba(66, 31, 0, 0.08);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 22px 44px rgba(66, 31, 0, 0.14);
+  }
+}
+
+/* Social track animation */
+.social-track {
+  display: inline-flex;
+  min-width: max-content;
+  gap: 1rem;
+  animation: marquee 20s linear infinite;
+}
+
+/* Result overlay styles */
+.paper-texture {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(120, 90, 54, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 90, 54, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.classified-stamp {
+  position: absolute;
+  right: 5rem;
+  top: 5rem;
+  border: 6px solid rgba(185, 28, 28, 0.22);
+  color: rgba(185, 28, 28, 0.22);
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  padding: 1rem 1.25rem;
+  transform: rotate(-18deg);
+}
+
+.gavel-bang {
+  animation: bang 2.1s ease-in-out infinite;
+  transform-origin: 70% 80%;
+}
+
+@keyframes bang {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  18% {
+    transform: rotate(-30deg) translateY(-8px);
+  }
+  26% {
+    transform: rotate(10deg) translateY(7px);
+  }
+  48% {
+    transform: rotate(-30deg) translateY(-8px);
+  }
+  56% {
+    transform: rotate(10deg) translateY(7px);
+  }
+  78% {
+    transform: rotate(-30deg) translateY(-8px);
+  }
+  86% {
+    transform: rotate(10deg) translateY(7px);
+  }
+}
+
+.stat-card {
+  border: 1px dashed rgba(41, 26, 24, 0.18);
+  border-radius: 1.5rem;
+  padding: 1.1rem 1.15rem;
+  background: rgba(255, 252, 248, 0.86);
+  opacity: 0.25;
+  transform: translateY(16px);
+}
+
+.stat-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+  animation: reveal-up 0.45s ease forwards;
+  box-shadow: 0 14px 28px rgba(66, 31, 0, 0.1);
+}
+
+.flicker-card.revealed {
+  animation: reveal-up 0.45s ease forwards, flicker 0.55s ease;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.stat-label {
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8b5e3c;
+}
+
+.stat-value {
+  margin-top: 0.85rem;
+  font-size: 1.6rem;
+  line-height: 1.15;
+  font-weight: 900;
+  color: #221b1a;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.verdict-shell {
+  transform: scale(0.8);
+  animation: verdict-in 0.55s ease forwards;
+}
+
+@keyframes verdict-in {
+  0% {
+    transform: scale(0.8);
+    border-color: rgba(248, 113, 113, 0.35);
+    box-shadow: 0 0 0 rgba(248, 113, 113, 0.45);
+  }
+  45% {
+    box-shadow: 0 0 0 10px rgba(248, 113, 113, 0.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.spin-stamp {
+  position: absolute;
+  right: 1.2rem;
+  top: -1rem;
+  padding: 0.7rem 1rem;
+  border: 4px solid #991b1b;
+  color: #991b1b;
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  transform: rotate(-14deg);
+  animation: stamp-in 0.85s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+  background: rgba(255, 249, 239, 0.9);
+}
+
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-26px) rotate(-220deg) scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(8px) rotate(-10deg) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(-14deg) scale(1);
+  }
+}
+
+.verdict-rubber {
+  transform: rotate(-4deg);
+  box-shadow: inset 0 0 0 1px rgba(153, 27, 27, 0.08);
+}
+
+.confetti {
+  position: absolute;
+  top: 42%;
+  font-size: 1.3rem;
+  animation-name: confetti;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti {
+  from {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-130px) rotate(180deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .classified-stamp {
+    right: 1rem;
+    top: 2rem;
+    font-size: 1.6rem;
+    padding: 0.7rem 0.9rem;
+  }
+}
+>>>>>>> b81388dfbc93aec9cd67bfcfbb94034c14eb042f
