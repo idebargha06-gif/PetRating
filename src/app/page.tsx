@@ -386,17 +386,17 @@ export default function Home() {
                 {isCuteMode ? "Explore" : "The Goods"}
               </h4>
               <ul className={`space-y-3 ${isCuteMode ? "font-medium" : "font-bold"}`}>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
-                  {isCuteMode ? "Rate Pets" : "Rate That Pet"}
+                <li><a href="/" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
+                  {isCuteMode ? "Home" : "Rate That Pet"}
                 </a></li>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
-                  {isCuteMode ? "Top Rated" : "Top Icons"}
+                <li><a href="/about" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
+                  {isCuteMode ? "About Us" : "Our Chaos"}
                 </a></li>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
-                  {isCuteMode ? "Community" : "The Drama"}
+                <li><a href="/faq" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
+                  FAQ
                 </a></li>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
-                  {isCuteMode ? "About Us" : "Rules (lol jk)"}
+                <li><a href="/contact" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
+                  Contact
                 </a></li>
               </ul>
             </div>
@@ -414,10 +414,7 @@ export default function Home() {
                   {isCuteMode ? "Care Guide" : "The Queens"}
                 </a></li>
                 <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
-                  Contact
-                </a></li>
-                <li><a href="#" className={`hover:underline ${isCuteMode ? "hover:text-purple-500" : "hover:text-pink-400"}`}>
-                  FAQ
+                  {isCuteMode ? "Blog" : "Press (we're famous)"}
                 </a></li>
               </ul>
             </div>
