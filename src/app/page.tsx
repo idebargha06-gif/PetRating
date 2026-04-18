@@ -1,6 +1,31 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function Home() {
+  const [isCuteMode, setIsCuteMode] = useState(false);
+
+  useEffect(() => {
+    if (isCuteMode) {
+      document.body.classList.add("cute-mode");
+    } else {
+      document.body.classList.remove("cute-mode");
+    }
+  }, [isCuteMode]);
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-pink-300 via-purple-300 to-yellow-200 font-sans overflow-x-hidden">
+      {/* Mode Toggle Button */}
+      <button
+        onClick={() => setIsCuteMode(!isCuteMode)}
+        className="fixed top-4 right-4 z-50 px-4 py-2 bg-black text-white font-black text-sm uppercase tracking-widest rounded-full hover:scale-110 transition-all shadow-lg"
+        style={{
+          backgroundColor: isCuteMode ? "#ff69b4" : "#000",
+        }}
+      >
+        {isCuteMode ? "✨ Cute Mode" : "💅 Sassy Mode"}
+      </button>
+
       {/* Hero Section */}
       <section className="relative flex flex-1 items-center justify-center px-4 py-20 sm:px-8 lg:px-16">
         <div className="max-w-6xl text-center relative z-10">
