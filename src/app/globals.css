@@ -322,3 +322,17 @@ body.cute-mode * {
     padding: 0.7rem 0.9rem;
   }
 }
+
+/* Theme transition helper
+   - `theme-transition` is added briefly when switching themes to enable
+     smooth transitions for colors, backgrounds and borders. */
+body.theme-transition,
+body.theme-transition * {
+  transition: background-color 360ms ease, color 360ms ease, border-color 360ms ease, box-shadow 360ms ease;
+}
+
+/* Slight body background transition so gradients don't snap */
+body.theme-transition {
+  transition: background 420ms ease;
+}
+
