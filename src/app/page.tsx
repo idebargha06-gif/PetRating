@@ -33,7 +33,7 @@ function MainContent() {
           <div className="mt-12 flex flex-col gap-4 font-black uppercase tracking-widest sm:flex-row justify-center flex-wrap">
             <a
               className="px-8 py-4 bg-neon-pink text-white transform -rotate-2 hover:rotate-2 hover:scale-110 transition-all shadow-[8px_8px_0_0_#000] hover:shadow-[12px_12px_0_0_#000]"
-              href="#ratings"
+              href="/main"
               style={{ backgroundColor: "#ff00ff" }}
             >
               RATE THAT PET! 🔥
@@ -335,7 +335,7 @@ function MainContent() {
             </div>
           </div>
           <div className={`border-t pt-8 text-center text-sm uppercase tracking-widest ${isCuteMode ? "border-purple-300 font-medium" : "border-white/20 font-bold"}`}>
-            <p>{isCuteMode ? "© 2024 Pawndora. Made with love for all pets. 💕✨" : "© 2024 Pawndora. We do what we want. Deal with it. 💅✨"}</p>
+            <p>{isCuteMode ? "© 2026 Pawndora. Made with love for all pets. 💕✨" : "© 2026 Pawndora. We do what we want. Deal with it. 💅✨"}</p>
           </div>
         </div>
       </footer>

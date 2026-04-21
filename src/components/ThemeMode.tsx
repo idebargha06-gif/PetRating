@@ -13,13 +13,20 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-	const [theme, setTheme] = useState<Theme>(() => {
-		if (typeof window === "undefined") return "sassy";
-		const saved = localStorage.getItem("theme");
-		return saved === "cute" ? "cute" : "sassy";
-	});
+	const [theme, setTheme] = useState<Theme>("sassy");
+	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
+		setMounted(true);
+		const saved = localStorage.getItem("theme");
+		if (saved === "cute" || saved === "sassy") {
+			setTheme(saved);
+		}
+	}, []);
+
+	useEffect(() => {
+		if (!mounted) return;
+
 		const body = document.body;
 		if (theme === "cute") body.classList.add("cute-mode");
 		else body.classList.remove("cute-mode");
@@ -30,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 		localStorage.setItem("theme", theme);
 		return () => window.clearTimeout(id);
-	}, [theme]);
+	}, [theme, mounted]);
 
 	const toggle = () => setTheme((p) => (p === "cute" ? "sassy" : "cute"));
 
@@ -54,8 +61,8 @@ export function ThemeToggle({ className }: { className?: string }) {
 	return (
 		<button
 			onClick={toggle}
-			className={`fixed top-4 right-4 z-50 px-4 py-2 font-black text-sm uppercase tracking-widest rounded-full hover:scale-110 transition-all shadow-lg ${className ?? ""}`}
-			style={{ backgroundColor: isCute ? "#ff69b4" : "#000", color: "#fff" }}
+			className={`fixed top-4 right-4 z-[99999] px-4 py-2 font-black text-sm uppercase tracking-widest rounded-full hover:scale-110 transition-all shadow-lg text-white ${isCute ? "bg-pink-400" : "bg-black"} ${className ?? ""}`}
+			style={{ pointerEvents: 'auto' }}
 			aria-pressed={isCute}
 		>
 			{isCute ? "✨ Cute Mode" : "💅 Sassy Mode"}
